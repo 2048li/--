@@ -1,0 +1,78 @@
+数值的整数次方：
+实现函数 double Power(double base, int exp)，求base得exp次方，不得使用库函数，同时不需考虑大数问题。
+
+很多人会这样做：
+double Power(double base,int exp)
+{
+   double result=1.0;
+   for(int i=1;i<=exp;i++)
+     result *= base;
+    return result;
+}
+
+这样没考虑exp是非正数的情况。
+或者这样：当指数为负数时，可以对exp求绝对值，算出乘方后求倒数——0怎么办？：0的0次方无意义。但要说明考虑的这个边界情况。
+
+bool g_invaludinput=false;
+double Powerwithunsignedexp(double base,unsigned int exp);
+bool equal(double a,double b);
+
+double Power(double base,int exp)
+{
+	g_invaludinput=false;
+	if(equal(base,0.0)&&exp<0)
+	{
+		g_invaludinput=true;
+		return 0.0;
+	}
+	unsigned int absexp=(unsigned int)(exp);
+	if(exp<0) absexp=(unsigned int)(-exp);
+	double result = Powerwithunsignedexp(base,absexp);
+	if(exp<0) result=1.0/result;
+	printf("%f\n",result);
+	return result;
+}
+
+double Powerwithunsignedexp(double base,unsigned int exp)
+{
+	double result=1.0;
+	printf("base:%f\n",base);
+	printf("exp:%d\n",exp);
+	for(int i=1;i<=exp;++i)
+	result*=base;
+	printf("%f\n",result);
+	return result;
+}
+
+bool equal(double a,double b)
+{
+	if((a-b>-0.0000001)&&(a-b<0.0000001))
+	return true;
+	else
+	return false;
+}
+
+其中，Powerwithunsignedexp还能优化：
+double Powerwithunsignedexp(double base,unsigned int exp)
+{
+  	if(exp==0) return 1;
+	if(exp==1) return base;
+	double result=Powerwithunsignedexp(base,exp>>1);
+	result*=result;
+	if(exp& 0x1==1)
+	result*=base;
+	return result;
+}
+
+位运算效率比乘除法及求余运算效率高。
+
+
+体会——代码完整性
+1.确保完整性：（把可能的输入都想清楚，避免程序中出现的各种各样的质量漏洞（即单元测试。）从功能测试，边界测试，负面测试设计测试用例：
+1）普通功能测试：完成基本功能；其次突破常规思维，想想要求者的陷阱：限制？范围？
+2）边界值的测试：循环或递归边界条件是否正确？
+3）错误的输入：输入不符合要求的时候做出合理的错误处理。
+2.错误处理方法：
+1）利用函数返回值告知调用者是否出错；
+2）当发生错误时设置一个全局变量：flag；
+3）异常：当函数运行出错时，抛出异常。
